@@ -4,6 +4,8 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useSearchParams, usePathname, useRouter } from 'next/navigation';
 
+import { fetchData } from './lib';
+
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 
@@ -18,20 +20,19 @@ const Index = () => {
   const itemsPerPage = 25;
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchedDataAndSet = async () => {
       try {
-        const response = await axios.get('https://www.alphavantage.co/query?function=INCOME_STATEMENT&symbol=IBM&apikey=demo');
-        setData(response.data.annualReports);
-        setFilteredData(response.data.annualReports);
-				console.log("Report length",response.data.annualReports.length)
-        //console.log(response.data[0])
+        const fetchedData = await fetchData();
+        setData(fetchedData);
+        setFilteredData(fetchedData);
       } catch (error) {
         console.log('Fetch Error', error);
       }
     };
 
-    fetchData();
-  }, []);
+    fetchedDataAndSet()
+    }, []);
+
 
   const handleDownloadPDF = () => {
     const doc = new jsPDF();

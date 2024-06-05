@@ -6,6 +6,8 @@ import axios from 'axios';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 
+import * as XLSX from 'xlsx';
+
 const Index = () => {
 	const [search, setSearch] = useState('');
   const [data, setData] = useState([]);
@@ -86,11 +88,59 @@ const Index = () => {
   const offset = (currentPage - 1) * itemsPerPage;
   const currentData = data.slice(offset, offset + itemsPerPage);
 
+  const handleDownloadExcel = () => {
+    const table = document.getElementById('income_table');
+    const headerElement = document.getElementById('header');
+
+    if (table && headerElement) {
+      const headerText = headerElement.textContent.trim();
+      const headers = [];
+      Array.from(table.querySelectorAll('thead th')).forEach(headerCell => {
+        headers.push(headerCell.textContent.trim());
+      });
+      const tableData = [];
+      Array.from(table.querySelectorAll('tbody tr')).forEach(row => {
+        const rowData = [];
+        Array.from(row.cells).forEach(cell => {
+          rowData.push(cell.textContent.trim());
+        });
+        tableData.push(rowData);
+      });
+
+      // Create a new workbook and add a worksheet
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.aoa_to_sheet([headers, ...tableData]);
+
+      // Add worksheet to workbook
+      XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+
+      // Convert workbook to binary Excel file (xlsx format)
+      const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+
+      // Create a Blob from the buffer
+      const blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
+
+      // Create a temporary URL and initiate download
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'table_data.xlsx');
+      document.body.appendChild(link);
+      link.click();
+
+      // Cleanup
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(link);
+    } else {
+      console.error('Table or header element not found');
+    }
+  }
+
   return (
 		<>
 			<section className="text-gray-600 body-font">
-        <div className="container px-5 py-10 mx-auto">
-          <div className="flex flex-col text-center w-full mb-5">
+        <div className="container px-5 py-5 mx-auto">
+          <div className="flex flex-col text-center w-full">
             <h1 
               id='header'
               className="sm:text-3xl text-2xl font-medium title-font mb-4 text-gray-900">Alpha Vantage Income Statement
@@ -99,33 +149,37 @@ const Index = () => {
         </div>
       </section>
       <section>
-        <header className="text-gray-600 body-font">
-          <div className="container mx-auto flex flex-wrap p-5 flex-col md:flex-row items-center">
-            <nav className="flex lg:w-2/5 flex-wrap items-center text-base md:ml-auto">
-              <a className="mr-5 hover:text-gray-900">First Link</a>
-              <a className="mr-5 hover:text-gray-900">Second Link</a>
-            </nav>
-            <input
-              type="text"
-              className="border border-gray-200"
-              placeholder="Search for a character..."
-              value={search}
-              onChange={handleChange}
-            />
-            <div className="lg:w-2/5 inline-flex lg:justify-end ml-5 lg:ml-0">
-              <button
-                className="inline-flex items-center bg-gray-100 border-0 py-1 px-3 focus:outline-none hover:bg-gray-200 rounded text-base mt-4 md:mt-0"
-                onClick={handleDownloadPDF}
-                >
-                Download PDF
-              </button>
-            </div>
+      <header className="text-gray-600 body-font">
+        <div className="container mx-auto flex flex-wrap items-center justify-between py-5">
+          <input
+            type="text"
+            className="border border-gray-200 p-2 mx-5"
+            placeholder="Search..."
+            value={search}
+            onChange={handleChange}
+          />
+          <div className="lg:w-2/5 flex justify-end space-x-4">
+            <button
+              className="inline-flex items-center bg-gray-100 border-0 py-1 px-3 focus:outline-none hover:bg-gray-200 rounded text-base"
+              onClick={handleDownloadPDF}
+            >
+              Download PDF
+            </button>
+            <button
+              className="inline-flex items-center bg-gray-100 border-0 py-1 px-3 focus:outline-none hover:bg-gray-200 rounded text-base"
+              onClick={handleDownloadExcel}
+            >
+              Download Excel
+            </button>
           </div>
-        </header>
+        </div>
+      </header>
       </section>
-			<section>
+			<section className='mx-auto flex justify-center'>
 				<div>
-          <table id="income_table">
+          <table 
+            id="income_table"
+            >
 						<thead>
 							<tr>
 								<th>Fiscal Date Ending</th>
@@ -153,7 +207,7 @@ const Index = () => {
       <section className="text-gray-600 body-font py-8">
         <div className="container px-5 mx-auto flex items-center md:flex-row flex-col">
           <div className="flex flex-col md:pr-10 md:mb-0 mb-6 pr-0 w-full md:w-auto md:text-left text-center">
-            <h1 className="md:text-xl font-medium text-gray-900">https://www.alphavantage.co/query?function=INCOME_STATEMENT&symbol=IBM&apikey=demo</h1>
+            <h6 className="md:text-xs text-gray-900">https://www.alphavantage.co/query?function=INCOME_STATEMENT&symbol=IBM&apikey=demo</h6>
           </div>
           <div className="flex md:ml-auto md:mr-0 mx-auto items-center flex-shrink-0 space-x-4">
             <button
@@ -174,7 +228,14 @@ const Index = () => {
           </div>
         </div>
       </section>
-		
+      <style>
+        {`
+          table, th, td {
+            border: 1px solid black;
+            border-collapse: collapse;
+          }
+        `}
+      </style>
 		</>
 		
   );

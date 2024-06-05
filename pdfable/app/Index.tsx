@@ -65,7 +65,7 @@ const Index = () => {
     }),
 
     //Download pdf
-    doc.save('table_data.pdf')
+    doc.save(`${headerText}.pdf`)
     } else {
       console.error('Header not found');
     }
@@ -94,6 +94,7 @@ const Index = () => {
 
     if (table && headerElement) {
       const headerText = headerElement.textContent.trim();
+
       const headers = [];
       Array.from(table.querySelectorAll('thead th')).forEach(headerCell => {
         headers.push(headerCell.textContent.trim());
@@ -124,7 +125,7 @@ const Index = () => {
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', 'table_data.xlsx');
+      link.setAttribute('download', `${headerText}.xlsx`);
       document.body.appendChild(link);
       link.click();
 

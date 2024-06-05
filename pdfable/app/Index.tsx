@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useSearchParams, usePathname, useRouter } from 'next/navigation';
 
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
@@ -12,6 +13,8 @@ const Index = () => {
 	const [search, setSearch] = useState('');
   const [data, setData] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
+  const [filteredData, setFilteredData] = useState(data);
+
   const itemsPerPage = 25;
 
   useEffect(() => {
@@ -19,7 +22,9 @@ const Index = () => {
       try {
         const response = await axios.get('https://www.alphavantage.co/query?function=INCOME_STATEMENT&symbol=IBM&apikey=demo');
         setData(response.data.annualReports);
+        setFilteredData(response.data.annualReports);
 				console.log("Report length",response.data.annualReports.length)
+        //console.log(response.data[0])
       } catch (error) {
         console.log('Fetch Error', error);
       }
@@ -72,10 +77,21 @@ const Index = () => {
 
   };
 
-	const handleChange = (event) => {
-    setSearch(event.target.value);
+	const handleSearch = (term: string) => {
+    setSearch(term);
+    if (term) {
+      const filtered = data.filter((item) =>
+        Object.values(item).some((value) =>
+          value.toString().toLowerCase().includes(term.toLowerCase())
+        )
+      );
+      setFilteredData(filtered);
+    } else {
+      setFilteredData(data);
+    }
   };
-
+  
+  
 					
   const handlePageChange = (direction) => {
     if (direction === 'next' && currentPage < Math.ceil(data.length / itemsPerPage)) {
@@ -153,11 +169,13 @@ const Index = () => {
       <header className="text-gray-600 body-font">
         <div className="container mx-auto flex flex-wrap items-center justify-between py-5">
           <input
-            type="text"
+            //type="text"
             className="border border-gray-200 p-2 mx-5"
             placeholder="Search..."
             value={search}
-            onChange={handleChange}
+            onChange={(e) => {
+              handleSearch(e.target.value);
+            }}
           />
           <div className="lg:w-2/5 flex justify-end space-x-4">
             <button
@@ -181,7 +199,31 @@ const Index = () => {
           <table 
             id="income_table"
             >
-						<thead>
+
+            
+						{/************* Maps over the entire table fetches keys form the json and updates the table accordingly
+             * 
+             * <thead>
+              <tr>
+                {data.length > 0 && Object.keys(data[0]).map((key) => (
+                  <th key={key}>{key}</th>
+                ))}
+              </tr>
+						</thead>
+						<tbody>
+            {data.map((item, index) => (
+              <tr key={index}>
+                {Object.values(item).map((value, index) => (
+                  <td key={index}>{value !== undefined ? value : '-'}</td>
+                ))}
+              </tr>
+            ))}
+
+          </tbody>
+          
+          **/}
+
+          <thead>
 							<tr>
 								<th>Fiscal Date Ending</th>
 								<th>Gross Profit</th>
@@ -191,7 +233,7 @@ const Index = () => {
 							</tr>
 						</thead>
 						<tbody>
-							{currentData.map((report, index) => (
+							{filteredData.map((report, index) => (
 								<tr key={index}>
 									<td>{report.fiscalDateEnding}</td>
 									<td>{report.grossProfit}</td>

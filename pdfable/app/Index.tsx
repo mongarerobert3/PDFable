@@ -40,7 +40,7 @@ const Index = () => {
     const header = document.getElementById('header');
 
     if(header) {
-      const headerText = header.textContent.trim()
+      const headerText = header.textContent?.trim()
 
       doc.setFontSize(20);
       doc.text(headerText, 20, 10);

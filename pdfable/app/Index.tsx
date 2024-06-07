@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+
 import { useSearchParams, usePathname, useRouter } from 'next/navigation';
 
 import { fetchData } from './lib';
@@ -16,6 +17,10 @@ const Index = () => {
   const [data, setData] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [filteredData, setFilteredData] = useState(data);
+  const [url, setUrl] = useState("")
+
+  //carries the data from the url
+  const [urlData, setUrlData] = useState([]);
 
   const itemsPerPage = 25;
 
@@ -33,7 +38,69 @@ const Index = () => {
     fetchedDataAndSet()
     }, []);
 
+    useEffect(() => {
+      const fetchedUrlData = async () => {
+        const urlSearch = await axios.get(url)
+        const urlResponse = urlSearch.data
+        setUrlData(urlResponse)
+      }
 
+      if (url) {
+        fetchedUrlData();
+      }
+    }, [url])
+
+
+	const handleSearch = (term) => {
+    setSearch(term);
+    if (term) {
+      const filtered = data.filter((item) =>
+        Object.values(item).some((value) =>
+          value?.toString().toLowerCase().includes(term.toLowerCase())
+        )
+      );
+      setFilteredData(filtered);
+    } else {
+      setFilteredData(data);
+    }
+  };
+  
+  
+					
+  const handlePageChange = (direction) => {
+    if (direction === 'next' && currentPage < Math.ceil(data.length / itemsPerPage)) {
+      setCurrentPage(currentPage + 1);
+    } else if (direction === 'prev' && currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
+  const offset = (currentPage - 1) * itemsPerPage;
+  const currentData = data.slice(offset, offset + itemsPerPage);
+
+
+
+  const handleUrlChange = (newUrl) => {
+    setUrl(newUrl);
+
+  };
+
+  const handleCustomUrl = () => {
+    if (url) {
+      setUrl(url)
+    } else {
+      alert("Please Insert Url")
+    }
+  }
+
+  const renderValue = (value) => {
+    if (typeof value === 'object' && value !== null) {
+      return JSON.stringify(value); // Convert object to string for display
+    }
+    return value !== undefined ? value : "-";
+  };
+
+  // Library to download pdf file
   const handleDownloadPDF = () => {
     const doc = new jsPDF();
     const table = document.getElementById('income_table');
@@ -78,33 +145,7 @@ const Index = () => {
 
   };
 
-	const handleSearch = (term: string) => {
-    setSearch(term);
-    if (term) {
-      const filtered = data.filter((item) =>
-        Object.values(item).some((value) =>
-          value.toString().toLowerCase().includes(term.toLowerCase())
-        )
-      );
-      setFilteredData(filtered);
-    } else {
-      setFilteredData(data);
-    }
-  };
-  
-  
-					
-  const handlePageChange = (direction) => {
-    if (direction === 'next' && currentPage < Math.ceil(data.length / itemsPerPage)) {
-      setCurrentPage(currentPage + 1);
-    } else if (direction === 'prev' && currentPage > 1) {
-      setCurrentPage(currentPage - 1);
-    }
-  };
-
-  const offset = (currentPage - 1) * itemsPerPage;
-  const currentData = data.slice(offset, offset + itemsPerPage);
-
+  // Library to download xlsx file
   const handleDownloadExcel = () => {
     const table = document.getElementById('income_table');
     const headerElement = document.getElementById('header');
@@ -171,13 +212,26 @@ const Index = () => {
         <div className="container mx-auto flex flex-wrap items-center justify-between py-5">
           <input
             //type="text"
-            className="border border-gray-200 p-2 mx-5"
+            className="border border-gray-200 p-2"
             placeholder="Search..."
             value={search}
             onChange={(e) => {
               handleSearch(e.target.value);
             }}
           />
+          <input
+            //type="text"
+            className="border border-gray-200 p-2"
+            placeholder="Input custom Api..."
+            //value={search}
+            onChange={(e) => {
+              handleUrlChange(e.target.value)
+            }}
+          />
+          <button
+              className="inline-flex items-center bg-gray-100 border-0 py-1 focus:outline-none hover:bg-gray-200 rounded text-base"
+              onClick={handleCustomUrl}
+            >Custom table</button>
           <div className="lg:w-2/5 flex justify-end space-x-4">
             <button
               className="inline-flex items-center bg-gray-100 border-0 py-1 px-3 focus:outline-none hover:bg-gray-200 rounded text-base"
@@ -197,54 +251,56 @@ const Index = () => {
       </section>
 			<section className='mx-auto flex justify-center'>
 				<div>
-          <table 
-            id="income_table"
-            >
-
-            
-						{/************* Maps over the entire table fetches keys form the json and updates the table accordingly
-             * 
-             * <thead>
-              <tr>
-                {data.length > 0 && Object.keys(data[0]).map((key) => (
-                  <th key={key}>{key}</th>
-                ))}
-              </tr>
-						</thead>
-						<tbody>
-            {data.map((item, index) => (
-              <tr key={index}>
-                {Object.values(item).map((value, index) => (
-                  <td key={index}>{value !== undefined ? value : '-'}</td>
-                ))}
-              </tr>
-            ))}
-
-          </tbody>
-          
-          **/}
-
-          <thead>
-							<tr>
-								<th>Fiscal Date Ending</th>
-								<th>Gross Profit</th>
-								<th>Total Revenue</th>
-								<th>Operating Income</th>
-								<th>Net Income</th>
-							</tr>
-						</thead>
-						<tbody>
-							{filteredData.map((report, index) => (
-								<tr key={index}>
-									<td>{report.fiscalDateEnding}</td>
-									<td>{report.grossProfit}</td>
-									<td>{report.totalRevenue}</td>
-									<td>{report.operatingIncome}</td>
-									<td>{report.netIncome}</td>
-								</tr>
-							))}
-						</tbody>
-					</table>
+        <table id="income_table">
+            {/* Conditional rendering based on whether urlData exists */}
+            {urlData.length > 0 ? (
+              <>
+                <thead>
+                  <tr>
+                    {/* Mapping over keys of the first object in urlData */}
+                    {Object.keys(urlData[0]).map((key) => (
+                      <th key={key}>{key}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {/* Mapping over urlData array */}
+                  {urlData.map((item, index) => (
+                    <tr key={index}>
+                      {/* Mapping over values of each object */}
+                      {Object.values(item).map((value, index) => (
+                        <td key={index}>{renderValue(value)}</td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </>
+            ) : (
+              <>
+                <thead>
+                  <tr>
+                    <th>Fiscal Date Ending</th>
+                    <th>Gross Profit</th>
+                    <th>Total Revenue</th>
+                    <th>Operating Income</th>
+                    <th>Net Income</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  
+                    {filteredData.map((report, index) => (
+                      <tr key={index}>
+                        <td>{report.fiscalDateEnding}</td>
+                        <td>{report.grossProfit}</td>
+                        <td>{report.totalRevenue}</td>
+                        <td>{report.operatingIncome}</td>
+                        <td>{report.netIncome}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+              </>
+            )}
+          </table>
 				</div>
 			</section>
     

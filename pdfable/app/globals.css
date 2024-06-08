@@ -8,3 +8,13 @@
     text-wrap: balance;
   }
 }
+
+.address-input {
+  resize: both; 
+  overflow: auto; 
+  position: relative;
+}
+
+.address-input::-webkit-resizer {
+  display: none; 
+}

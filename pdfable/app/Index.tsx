@@ -2,15 +2,17 @@
 
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-
+import Image from 'next/image';
 import { useSearchParams, usePathname, useRouter } from 'next/navigation';
 
 import { fetchData } from './lib';
+import Header from './components/Header';
 
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 
 import * as XLSX from 'xlsx';
+import RichTextEditor from './components/RichTextEditor';
 
 const Index = () => {
 	const [search, setSearch] = useState('');
@@ -21,6 +23,9 @@ const Index = () => {
 
   //carries the data from the url
   const [urlData, setUrlData] = useState([]);
+
+
+
 
   const itemsPerPage = 25;
 
@@ -195,66 +200,23 @@ const Index = () => {
     }
   }
 
+  function handleDownloadAllPages(): void {
+    throw new Error('Function not implemented.');
+  }
+
   return (
-		<>
-			<section className="text-gray-600 body-font">
-        <div className="container px-5 py-5 mx-auto">
-          <div className="flex flex-col text-center w-full">
-            <h1 
-              id='header'
-              className="sm:text-3xl text-2xl font-medium title-font mb-4 text-gray-900">Alpha Vantage Income Statement
-            </h1>
-          </div>
-        </div>
-      </section>
-      <section>
-      <header className="text-gray-600 body-font">
-        <div className="container mx-auto flex flex-wrap items-center justify-between py-5">
-          <input
-            //type="text"
-            className="border border-gray-200 p-2"
-            placeholder="Search..."
-            value={search}
-            onChange={(e) => {
-              handleSearch(e.target.value);
-            }}
-          />
-          <input
-            //type="text"
-            className="border border-gray-200 p-2"
-            placeholder="Input custom Api..."
-            //value={search}
-            onChange={(e) => {
-              handleUrlChange(e.target.value)
-            }}
-          />
-          <button
-              className="inline-flex items-center bg-gray-100 border-0 py-1 focus:outline-none hover:bg-gray-200 rounded text-base"
-              onClick={handleCustomUrl}
-            >Custom table</button>
-          <div className="lg:w-2/5 flex justify-end space-x-4">
-            <button
-              className="inline-flex items-center bg-gray-100 border-0 py-1 px-3 focus:outline-none hover:bg-gray-200 rounded text-base"
-              onClick={handleDownloadPDF}
-            >
-              Download PDF
-            </button>
-            <button
-              className="inline-flex items-center bg-gray-100 border-0 py-1 px-3 focus:outline-none hover:bg-gray-200 rounded text-base"
-              onClick={handleDownloadExcel}
-            >
-              Download Excel
-            </button>
-          </div>
-        </div>
-      </header>
-      </section>
-			<section className='mx-auto flex justify-center'>
-				<div>
-        <table id="income_table">
+		<div className='container mx-auto'>
+  { /*** Section A */}
+  <div className='flex'>
+    <div className="w-3/4">
+      <Header />
+      <section className='mx-auto flex justify-center'>
+        <div>
+          <table id="income_table">
             {/* Conditional rendering based on whether urlData exists */}
             {urlData.length > 0 ? (
               <>
+                {/* Table Header */}
                 <thead>
                   <tr>
                     {/* Mapping over keys of the first object in urlData */}
@@ -263,6 +225,7 @@ const Index = () => {
                     ))}
                   </tr>
                 </thead>
+                {/* Table Body */}
                 <tbody>
                   {/* Mapping over urlData array */}
                   {urlData.map((item, index) => (
@@ -277,6 +240,7 @@ const Index = () => {
               </>
             ) : (
               <>
+                {/* Default Table Header */}
                 <thead>
                   <tr>
                     <th>Fiscal Date Ending</th>
@@ -286,29 +250,32 @@ const Index = () => {
                     <th>Net Income</th>
                   </tr>
                 </thead>
+                {/* Default Table Body */}
                 <tbody>
-                  
-                    {filteredData.map((report, index) => (
-                      <tr key={index}>
-                        <td>{report.fiscalDateEnding}</td>
-                        <td>{report.grossProfit}</td>
-                        <td>{report.totalRevenue}</td>
-                        <td>{report.operatingIncome}</td>
-                        <td>{report.netIncome}</td>
-                      </tr>
-                    ))}
-                  </tbody>
+                  {filteredData.map((report, index) => (
+                    <tr key={index}>
+                      <td>{report.fiscalDateEnding}</td>
+                      <td>{report.grossProfit}</td>
+                      <td>{report.totalRevenue}</td>
+                      <td>{report.operatingIncome}</td>
+                      <td>{report.netIncome}</td>
+                    </tr>
+                  ))}
+                </tbody>
               </>
             )}
           </table>
-				</div>
-			</section>
-    
+        </div>
+      </section>
+
+      {/**** Controls section */}
       <section className="text-gray-600 body-font py-8">
         <div className="container px-5 mx-auto flex items-center md:flex-row flex-col">
+          {/* Control buttons */}
           <div className="flex flex-col md:pr-10 md:mb-0 mb-6 pr-0 w-full md:w-auto md:text-left text-center">
-            <h6 className="md:text-xs text-gray-900">https://www.alphavantage.co/query?function=INCOME_STATEMENT&symbol=IBM&apikey=demo</h6>
+            <h6 className="md:text-xs text-gray-900">Alphavantage</h6>
           </div>
+          {/* Page navigation buttons */}
           <div className="flex md:ml-auto md:mr-0 mx-auto items-center flex-shrink-0 space-x-4">
             <button
               className="inline-flex items-center bg-gray-100 border-0 py-1 px-3 focus:outline-none hover:bg-gray-200 rounded text-base mt-4 md:mt-0"
@@ -317,7 +284,7 @@ const Index = () => {
             >
               Prev
             </button>
-						<p>Page {currentPage}</p>
+            <p>Page {currentPage}</p>
             <button
               className="inline-flex items-center bg-gray-100 border-0 py-1 px-3 focus:outline-none hover:bg-gray-200 rounded text-base mt-4 md:mt-0"
               onClick={() => handlePageChange('next')}
@@ -328,16 +295,81 @@ const Index = () => {
           </div>
         </div>
       </section>
-      <style>
-        {`
-          table, th, td {
-            border: 1px solid black;
-            border-collapse: collapse;
-          }
-        `}
-      </style>
-		</>
-		
+    </div>
+
+    { /*** Section B */}
+    <div className="w-1/5 p-5">
+      <section className="flex flex-col items-center justify-center min-h-screen">
+        <RichTextEditor/>
+        <header className="text-gray-600 body-font">
+          <div className="container mx-auto flex flex-col items-center justify-center py-5 space-y-4">
+            {/* Search Input */}
+            <input
+              type="text"
+              className="border border-gray-200 p-2 w-64"
+              placeholder="Search..."
+              value={search}
+              onChange={(e) => {
+                handleSearch(e.target.value);
+              }}
+            />
+
+            {/* Download Buttons */}
+            <div className="flex space-x-4">
+              <button
+                className="inline-flex items-center bg-gray-100 border-0 py-1 px-3 focus:outline-none hover:bg-gray-200 rounded text-base"
+                onClick={handleDownloadPDF}
+              >
+                Download PDF
+              </button>
+              <button
+                className="inline-flex items-center bg-gray-100 border-0 py-1 px-3 focus:outline-none hover:bg-gray-200 rounded text-base"
+                onClick={handleDownloadExcel}
+              >
+                Download Excel
+              </button>
+            </div>
+
+            {/* Custom API Input and Button */}
+            <div className="flex space-x-4">
+              <input
+                type="text"
+                className="border border-gray-200 p-2"
+                placeholder="Input custom API..."
+                onChange={(e) => {
+                  handleUrlChange(e.target.value);
+                }}
+              />
+              <button
+                className="inline-flex items-center bg-gray-100 border-0 py-1 px-3 focus:outline-none hover:bg-gray-200 rounded text-base"
+                onClick={handleCustomUrl}
+              >
+                Custom Table
+              </button>
+            </div>
+
+            {/* Download All Pages Button */}
+            <button
+              className="inline-flex items-center bg-gray-100 border-0 py-1 px-3 focus:outline-none hover:bg-gray-200 rounded text-base mt-4"
+              onClick={handleDownloadAllPages}
+            >
+              Download All Pages
+            </button>
+          </div>
+        </header>
+      </section>
+    </div>
+  </div>
+  <style>
+    {`
+      table, th, td {
+        border: 1px solid black;
+        border-collapse: collapse;
+      }
+    `}
+  </style>
+</div>
+
   );
 }
 

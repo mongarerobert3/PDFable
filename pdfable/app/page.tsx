@@ -1,10 +1,8 @@
 import React from 'react';
-import Index from './Index';
+import PrintableArea from './components/PrintableArea';
 
 export default function Home() {
   return (
-    <>
-      <Index />
-    </>
+    <PrintableArea />
   );
 }

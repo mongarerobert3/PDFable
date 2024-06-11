@@ -2,6 +2,7 @@
 
 import React from 'react';
 
+
 const Pagination = ({ currentPage, handlePageChange, totalPages }) => (
   <section className="text-gray-600 body-font py-8">
     <div className="container px-5 mx-auto flex items-center md:flex-row flex-col">

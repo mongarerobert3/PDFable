@@ -1,46 +1,91 @@
-'use client';
+'use client'
 
 import React from 'react';
+import RichTextEditor from './RichTextEditor';
+import DownloadBtns from './DownloadBtns';
+import Checkboxes from './Checkboxes';
+import {useSharedState} from './StateStore';
 
-const SearchBar = ({ search, handleSearch, url, handleInputChange, fetchDataFromUrl }) => (
-  <header className="text-gray-600 body-font">
-    <div className="container mx-auto flex flex-wrap items-center justify-between py-5">
-      <input
-        type="text"
-        className="border border-gray-200 p-2 mx-5"
-        placeholder="Search..."
-        value={search}
-        onChange={(e) => handleSearch(e.target.value)}
-      />
-      <input
-        type="text"
-        className="border border-gray-200 p-2 mx-5"
-        placeholder="Enter URL to JSON data"
-        value={url}
-        onChange={handleInputChange}
-      />
-      <button
-        className="inline-flex items-center bg-gray-100 border-0 py-1 px-3 focus:outline-none hover:bg-gray-200 rounded text-base"
-        onClick={fetchDataFromUrl}
-      >
-        Fetch Data
-      </button>
-      <div className="lg:w-2/5 flex justify-end space-x-4">
-        <button
-          className="inline-flex items-center bg-gray-100 border-0 py-1 px-3 focus:outline-none hover:bg-gray-200 rounded text-base"
-          onClick={() => window.dispatchEvent(new Event('downloadPDF'))}
-        >
-          Download PDF
-        </button>
-        <button
-          className="inline-flex items-center bg-gray-100 border-0 py-1 px-3 focus:outline-none hover:bg-gray-200 rounded text-base"
-          onClick={() => window.dispatchEvent(new Event('downloadExcel'))}
-        >
-          Download Excel
-        </button>
-      </div>
+const SearchBar = () => {
+  const { search, setSearch, data, setData, url, setUrl, selectedColumns, setFilteredData, setSelectedColumns } = useSharedState();
+
+  const handleSearch = (term) => {
+    setSearch(term);
+    let filtered = data;
+
+    if (term) {
+      filtered = filtered.filter((item) =>
+        Object.values(item).some((value) =>
+          value?.toString().toLowerCase().includes(term.toLowerCase())
+        )
+      );
+    }
+
+    if (selectedColumns.length > 0) {
+      filtered = filtered.map(row => {
+        const filteredRow = {};
+        selectedColumns.forEach(column => {
+          if (row.hasOwnProperty(column)) {
+            filteredRow[column] = row[column];
+          }
+        });
+        return filteredRow;
+      });
+    }
+
+    setFilteredData(filtered);
+  };
+
+  const handleUrlChange = (newUrl) => {
+    setUrl(newUrl);
+  };
+
+  const handleCustomUrl = () => {
+    if (url) {
+      setUrl(url);
+    } else {
+      alert("Please Insert Url");
+    }
+  };
+
+  return (
+    <div>
+      <section className="flex flex-col items-center justify-center min-h-screen">
+        <RichTextEditor />
+        <header className="text-gray-600 body-font">
+          <div className="container mx-auto flex flex-col items-center justify-center py-5 space-y-4">
+            <input
+              type="text"
+              className="border border-gray-200 p-2 w-64"
+              placeholder="Search..."
+              value={search}
+              onChange={(e) => handleSearch(e.target.value)}
+            />
+
+            <DownloadBtns />
+
+            <div className="flex space-x-4">
+              <input
+                type="text"
+                className="border border-gray-200 p-2"
+                placeholder="Input custom API..."
+                onChange={(e) => handleUrlChange(e.target.value)}
+              />
+              <button
+                className="inline-flex items-center bg-gray-100 border-0 py-1 px-3 focus:outline-none hover:bg-gray-200 rounded text-base"
+                onClick={handleCustomUrl}
+              >
+                Custom Table
+              </button>
+            </div>
+          </div>
+          <div className="ml-7">
+            <Checkboxes setData={setData} selectedColumns={selectedColumns} setSelectedColumns={setSelectedColumns} url={url} />
+          </div>
+        </header>
+      </section>
     </div>
-  </header>
-);
+  );
+};
 
 export default SearchBar;

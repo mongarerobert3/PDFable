@@ -9,6 +9,11 @@ const useStateStore = () => {
   const [url, setUrl] = useState('');
   const [selectedColumns, setSelectedColumns] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
+  const [urlData, setUrlData] = useState([]);
+  const [footer, setFooter] = useState('');
+  const [logo, setLogo] = useState(null);
+  const [address, setAddress] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
 
   return {
     search,
@@ -20,7 +25,16 @@ const useStateStore = () => {
     selectedColumns,
     setSelectedColumns,
     filteredData,
-    setFilteredData,
+    setFilteredData, 
+    urlData, 
+    setUrlData,
+    footer, 
+    setFooter,
+    logo, 
+    setLogo,
+    address, 
+    setAddress,currentPage, 
+    setCurrentPage
   };
 };
 

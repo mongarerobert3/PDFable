@@ -1,117 +1,91 @@
-// app/page.js or app/index.js (depending on your file structure)
-"use client";
+'use client';
 
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import  {useSharedState} from './components/StateStore';
-import { fetchData } from './lib';
+import { useSharedState } from './components/StateStore';
+import { renderValue } from './components/lib';
+import Pagination from './components/Pagination'; 
 
 const Index = () => {
-  const { data, setData, url, filteredData, setFilteredData, selectedColumns } = useSharedState();
-  const [currentPage, setCurrentPage] = useState(1);
-  const [urlData, setUrlData] = useState([]);
+  const { selectedColumns, url, urlData, setUrlData, footer, setFooter, filteredData, setFilteredData,currentPage, setCurrentPage } = useSharedState();
+  const [error, setError] = useState(null);
 
-  const itemsPerPage = 25;
+  const [itemsPerPage] = useState(20); 
 
   useEffect(() => {
-    const fetchedDataAndSet = async () => {
+    const fetchDataFromApi = async () => {
       try {
-        const fetchedData = await fetchData();
-        setData(fetchedData);
-        setFilteredData(fetchedData);
+        const response = await axios.get(url);
+        setUrlData(response.data);
+        setFilteredData(response.data); // Initially, set filtered data to entire dataset
       } catch (error) {
-        console.log('Fetch Error', error);
+        setError(error);
       }
     };
 
-    fetchedDataAndSet();
-  }, [setData, setFilteredData]);
-
-  useEffect(() => {
-    const fetchedUrlData = async () => {
-      const urlSearch = await axios.get(url);
-      const urlResponse = urlSearch.data;
-      setUrlData(urlResponse);
-    };
-
     if (url) {
-      fetchedUrlData();
+      fetchDataFromApi();
     }
-  }, [url]);
+  }, [url, selectedColumns]);
 
-  useEffect(() => {
-    setFilteredData(data);
-  }, [data, setFilteredData]);
+  // Calculate total number of pages
+  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
 
-  const handlePageChange = (direction) => {
-    if (direction === 'next' && currentPage < Math.ceil(data.length / itemsPerPage)) {
-      setCurrentPage(currentPage + 1);
-    } else if (direction === 'prev' && currentPage > 1) {
-      setCurrentPage(currentPage - 1);
+  // Get current items based on pagination
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredData.slice(indexOfFirstItem, indexOfLastItem);
+
+  // Handle page change
+  const handlePageChange = (action) => {
+    if (action === 'prev') {
+      setCurrentPage((prevPage) => Math.max(prevPage - 1, 1));
+    } else if (action === 'next') {
+      setCurrentPage((prevPage) => Math.min(prevPage + 1, totalPages));
     }
-  };
-
-  const offset = (currentPage - 1) * itemsPerPage;
-  const currentData = data.slice(offset, offset + itemsPerPage);
-
-  const renderValue = (value) => {
-    if (typeof value === 'object' && value !== null) {
-      return JSON.stringify(value); // Convert object to string for display
-    }
-    return value !== undefined ? value : "-";
   };
 
   return (
     <div className="container mx-auto">
       <div className="flex">
-        <div className="w-3/4">
+        <div className="">
           <section className="mx-auto flex flex-wrap justify-center">
             <div>
               <table id="income_table">
-                {urlData.length > 0 ? (
-                  <>
-                    <thead>
-                      <tr>
-                        {Object.keys(urlData[0]).map((key) => (
-                          <th key={key}>{key}</th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {urlData.map((item, index) => (
-                        <tr key={index}>
-                          {Object.values(item).map((value, index) => (
-                            <td key={index}>{renderValue(value)}</td>
-                          ))}
-                        </tr>
+                <thead>
+                  <tr>
+                    {selectedColumns.map((column, index) => (
+                      <th key={index}>{column}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {currentItems.map((item, index) => (
+                    <tr key={index}>
+                      {selectedColumns.map((column, colIndex) => (
+                        <td key={colIndex}>{renderValue(item[column])}</td>
                       ))}
-                    </tbody>
-                  </>
-                ) : (
-                  <>
-                    <thead>
-                      <tr>
-                        {selectedColumns.map((column, index) => (
-                          <th key={index}>{column}</th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filteredData.map((row, rowIndex) => (
-                        <tr key={rowIndex}>
-                          {selectedColumns.map((column, colIndex) => (
-                            <td key={colIndex}>{row[column]}</td>
-                          ))}
-                        </tr>
-                      ))}
-                    </tbody>
-                  </>
-                )}
+                    </tr>
+                  ))}
+                </tbody>
               </table>
             </div>
           </section>
+          <Pagination currentPage={currentPage} handlePageChange={handlePageChange} totalPages={totalPages} />
+          <div>
+            <input 
+              id='footer'
+              type="text" 
+              value={footer}
+              onChange={(e) => setFooter(e.target.value)}
+              placeholder='Enter Footer Text'
+              className="px-10 py-4 rounded focus:outline-none mt-3 address-input"
+              style={{ width: '70%', height: '3%', resize: 'both', overflow: 'auto', border: footer ? 'none' : '1px solid gray' }}
+            />
+          </div>
         </div>
       </div>
+      {error && <p>Error: {error.message}</p>}
       <style>
         {`
           table, th, td {

@@ -6,21 +6,22 @@ import SearchBar from './SearchBar';
 
 const PrintableArea = () => {
   return (
-    <div className="design">
+    <>
+      <div className="design">
       <div className="a4-paper">
         <div><Header /></div>
         <div><Index /></div>
-        <div><Footer /></div>
       </div>
       <div className="right-side">
         <div>
-        <div className="">
-          <SearchBar />
-        </div>
+          <div className="">
+            <SearchBar />
+          </div>
         </div>
       </div>
     </div>
+    </>  
   );
 }
 
-export default PrintableArea
+export default PrintableArea;

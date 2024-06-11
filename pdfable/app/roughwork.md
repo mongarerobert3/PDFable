@@ -130,3 +130,94 @@ ORCL =
 
 /************************************************//
   /************************************************//
+
+  const handleDownloadPDF = () => {
+    const doc = new jsPDF();
+    const table = document.getElementById('income_table');
+    const footerInput = document.getElementById('footer');
+
+    if (!footerInput) {
+        console.error('Footer input not found');
+        return;
+    }
+
+    const footerText = footerInput.value || '';
+
+    const addHeaderAndFooter = () => {
+        const pageWidth = doc.internal.pageSize.width;
+
+        // Logo (to the left)
+        const logoImage = document.getElementById('file-upload');
+
+        if (logoImage && logoImage.files && logoImage.files[0]) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const logoDataURL = reader.result;
+                doc.addImage(logoDataURL, 'PNG', 15, 15, 50, 50); // Adjust dimensions and positions as needed
+            };
+            reader.readAsDataURL(logoImage.files[0]);
+        }
+
+        // Title (centered)
+        const titleInput = document.getElementById('header');
+
+        if (!titleInput) {
+            console.error('Title input not found');
+            return;
+        }
+
+        const titleText = titleInput.value || '';
+
+        doc.setFontSize(16);
+        const titleWidth = doc.getStringUnitWidth(titleText) * doc.internal.getFontSize();
+        const titleX = (pageWidth - titleWidth) / 2;
+        doc.text(titleText, titleX, 30); // Adjust position as needed
+
+        // Address (to the right)
+        const addressInput = document.getElementById('address');
+
+        if (!addressInput) {
+            console.error('Address input not found');
+            return;
+        }
+
+        const addressText = addressInput.value || '';
+
+        doc.setFontSize(12);
+        const addressWidth = doc.getStringUnitWidth(addressText) * doc.internal.getFontSize();
+        const addressX = pageWidth - addressWidth - 15;
+        doc.text(addressText, addressX, 45); // Adjust position as needed
+
+        // Footer (centered)
+        doc.setFontSize(10);
+        const pageHeight = doc.internal.pageSize.height;
+        const footerWidth = doc.getStringUnitWidth(footerText) * doc.internal.getFontSize();
+        const footerX = (pageWidth - footerWidth) / 2;
+        doc.text(footerText, footerX, pageHeight - 10); // Adjust position as needed
+    };
+
+    const startY = 70; // Adjust as needed
+
+    const headers = [];
+    Array.from(table?.querySelectorAll('thead th')).forEach(headerCell => {
+        headers.push(headerCell.textContent?.trim());
+    });
+
+    const tableData = [];
+    Array.from(table.querySelectorAll('tbody tr')).forEach(row => {
+        const rowData = [];
+        Array.from(row.cells).forEach(cell => {
+            rowData.push(cell.textContent.trim());
+        });
+        tableData.push(rowData);
+    });
+
+    doc.autoTable({
+        head: [headers],
+        body: tableData,
+        startY: startY,
+        didDrawPage: addHeaderAndFooter
+    });
+
+    doc.save('header.pdf');
+};

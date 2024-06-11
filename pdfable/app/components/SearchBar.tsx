@@ -7,11 +7,11 @@ import Checkboxes from './Checkboxes';
 import {useSharedState} from './StateStore';
 
 const SearchBar = () => {
-  const { search, setSearch, data, setData, url, setUrl, selectedColumns, setFilteredData, setSelectedColumns } = useSharedState();
+  const { search, setSearch, urlData, setData, url, setUrl, selectedColumns, setFilteredData, setSelectedColumns, setCurrentPage } = useSharedState();
 
   const handleSearch = (term) => {
     setSearch(term);
-    let filtered = data;
+    let filtered = urlData;
 
     if (term) {
       filtered = filtered.filter((item) =>
@@ -21,32 +21,14 @@ const SearchBar = () => {
       );
     }
 
-    if (selectedColumns.length > 0) {
-      filtered = filtered.map(row => {
-        const filteredRow = {};
-        selectedColumns.forEach(column => {
-          if (row.hasOwnProperty(column)) {
-            filteredRow[column] = row[column];
-          }
-        });
-        return filteredRow;
-      });
-    }
-
     setFilteredData(filtered);
+    setCurrentPage(1); // Reset pagination to first page after search
   };
 
   const handleUrlChange = (newUrl) => {
     setUrl(newUrl);
   };
 
-  const handleCustomUrl = () => {
-    if (url) {
-      setUrl(url);
-    } else {
-      alert("Please Insert Url");
-    }
-  };
 
   return (
     <div>
@@ -71,12 +53,7 @@ const SearchBar = () => {
                 placeholder="Input custom API..."
                 onChange={(e) => handleUrlChange(e.target.value)}
               />
-              <button
-                className="inline-flex items-center bg-gray-100 border-0 py-1 px-3 focus:outline-none hover:bg-gray-200 rounded text-base"
-                onClick={handleCustomUrl}
-              >
-                Custom Table
-              </button>
+              
             </div>
           </div>
           <div className="ml-7">

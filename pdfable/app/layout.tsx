@@ -15,7 +15,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en">       
+     <script src="https://unpkg.com/jspdf-invoice-template@1.4.0/dist/index.js"></script>
       <body className={inter.className}>{children}</body>
     </html>
   );

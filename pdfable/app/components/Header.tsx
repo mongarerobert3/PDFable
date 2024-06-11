@@ -3,11 +3,12 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import { Rnd } from 'react-rnd';
+import { useSharedState } from '../components/StateStore';
 
 const Header = () => {
-  const [logo, setLogo] = useState(null);
+  const { logo, setLogo, address, setAddress} = useSharedState();
+
   const [title, setTitle] = useState('');
-  const [address, setAddress] = useState('');
 
   const handleLogoChange = (file) => {
     setLogo(file);

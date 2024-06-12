@@ -1,8 +1,10 @@
 import React, {useState} from 'react'
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
+
 import jsPDFInvoiceTemplate from 'jspdf-invoice-template';
 import { renderValue } from './lib';
+import * as XLSX from 'xlsx';
 
 import { useSharedState } from '../components/StateStore';
 
@@ -10,9 +12,18 @@ import { useSharedState } from '../components/StateStore';
 const DownloadBtns = () => {
   const { selectedColumns, url,urlData, setUrlData, logo, address, footer} = useSharedState();
 
+  const OutputType = {
+    Save: "save", //save pdf as a file
+    DataUriString: "datauristring", //returns the data uri string
+    DataUri: "datauri", //opens the data uri in current window
+    DataUrlNewWindow: "dataurlnewwindow", //opens the data uri in new window
+    Blob: "blob", //return blob format of the doc,
+    ArrayBuffer: "arraybuffer", //return ArrayBuffer format
+  };
+
   const generatePDF = () => {
     const props = {
-      outputType: 'save',
+      outputType: OutputType || "save",
       fileName: "Invoice_Header",
       returnJsPDFDocObject: true,
       orientationLandscape: false,
@@ -31,29 +42,28 @@ const DownloadBtns = () => {
         address
       },
       invoice: {
-        invDate: "Payment Date: 01/01/2021 18:12",
-        invGenDate: "Invoice Date: 02/02/2021 10:17",
+        invGenDate: `Date: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`,
         headerBorder: true,
         tableBodyBorder: false,
-        header: selectedColumns.map(column => ({ title: column, style: { width: 30 } })),
+        header: selectedColumns.map(column => ({ title: column })),
         table: urlData.map(item => selectedColumns.map(column => renderValue(item[column]))),
         additionalRows: [],
         invDescLabel: "",
         invDesc: "",
       },
       footer: {
-        text: "The invoice is created on a computer and is valid without the signature and stamp.",
-        pageEnable: true, 
-    },
-      pageEnable: false,
-      pageLabel: "",
+        text: footer || "Disclaimer",
+        pageEnable: true
+      },
+      pageEnable: true, // Enable page numbering and footer display
+      pageLabel: "Page", // Label for page numbering
     };
-
+  
     const pdfObject = jsPDFInvoiceTemplate(props);
     const { jsPDFDocObject } = pdfObject;
     jsPDFDocObject.save("Invoice_Header.pdf");
   };
-
+  
 
 // Library to download xlsx file
 const handleDownloadExcel = () => {
@@ -61,19 +71,14 @@ const handleDownloadExcel = () => {
   const headerElement = document.getElementById('header');
 
   if (table && headerElement) {
+
+    //alert no headertext
     const headerText = headerElement.textContent.trim();
 
-    const headers = [];
-    Array.from(table.querySelectorAll('thead th')).forEach(headerCell => {
-      headers.push(headerCell.textContent.trim());
-    });
-    const tableData = [];
-    Array.from(table.querySelectorAll('tbody tr')).forEach(row => {
-      const rowData = [];
-      Array.from(row.cells).forEach(cell => {
-        rowData.push(cell.textContent.trim());
-      });
-      tableData.push(rowData);
+    const headers = Array.from(table.querySelectorAll('thead th')).map(headerCell => headerCell.textContent.trim());
+
+    const tableData = Array.from(table.querySelectorAll('tbody tr')).map(row => {
+      return Array.from(row.cells).map(cell => cell.textContent.trim());
     });
 
     // Create a new workbook and add a worksheet
@@ -89,16 +94,14 @@ const handleDownloadExcel = () => {
     // Create a Blob from the buffer
     const blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
 
-    // Create a temporary URL and initiate download
-    const url = window.URL.createObjectURL(blob);
+    // Create anchor tag and trigger download
     const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', `${headerText}.xlsx`);
+    link.href = URL.createObjectURL(blob);
+    link.setAttribute('download', 'tabledata.xlsx');
     document.body.appendChild(link);
     link.click();
 
     // Cleanup
-    window.URL.revokeObjectURL(url);
     document.body.removeChild(link);
   } else {
     console.error('Table or header element not found');

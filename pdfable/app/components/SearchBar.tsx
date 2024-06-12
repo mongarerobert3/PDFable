@@ -50,7 +50,7 @@ const SearchBar = () => {
               <input
                 type="text"
                 className="border border-gray-200 p-2"
-                placeholder="Input custom API..."
+                placeholder="link to json data ..."
                 onChange={(e) => handleUrlChange(e.target.value)}
               />
               

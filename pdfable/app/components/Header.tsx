@@ -69,7 +69,7 @@ const Header = () => {
               </label>
             </Rnd>
 
-            {/* Title Input */}
+            {/* Title Input 
             <Rnd
               default={{
                 x: 120,
@@ -88,7 +88,7 @@ const Header = () => {
                 className="p-2 rounded focus:outline-none address-input"
                 style={{ width: '100%', height: '100%', resize: 'both', overflow: 'auto', border: title ? 'none' : '1px solid gray' }}
               />
-            </Rnd>
+            </Rnd>*/}
 
             {/* Address Input */}
             <Rnd

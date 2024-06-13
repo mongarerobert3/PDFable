@@ -2,47 +2,50 @@
 
 import React, { useEffect, useState } from 'react';
 
-const Checkboxes = ({ setData, selectedColumns, setSelectedColumns, url, setUrlData }) => {
-  const [columns, setColumns] = useState([]);
-
-  useEffect(() => {
-    const fetchDataFromApi = async () => {
-      try {
-        const response = await fetch(url).then(res => res.json());
-        if (response.length > 0) {
-          const columnHeaders = Object.keys(response[0]);
-          setColumns(columnHeaders);
-          setSelectedColumns(columnHeaders); 
-          setData(response);
-          setUrlData(response); 
-        }
-      } catch (error) {
-        console.log('Error Fetching Data', error);
-      }
-    };
-
-    fetchDataFromApi();
-  }, [url, setData, setSelectedColumns, setUrlData]);
-
-  const handleColumnChange = (column) => {
-    setSelectedColumns(prev =>
-      prev.includes(column) ? prev.filter(col => col !== column) : [...prev, column]
+const Checkboxes = ({ headers = [], selectedColumns = [], setFilteredData }) => {
+  // Handle checkbox change for individual headers
+  const handleHeaderChange = (index) => {
+    setFilteredData(prevSelectedColumns =>
+      prevSelectedColumns.includes(index)
+        ? prevSelectedColumns.filter(col => col !== index)
+        : [...prevSelectedColumns, index]
     );
+  };
+
+  // Determine if "Select All" checkbox should be checked
+  const allChecked = headers.length === selectedColumns.length;
+
+  // Handle click on "Select All" checkbox
+  const toggleAllCheckboxes = () => {
+    if (allChecked) {
+      setFilteredData([]);
+    } else {
+      setFilteredData([...Array(headers.length).keys()]);
+    }
   };
 
   return (
     <div>
-      <p>Columns showing</p>
+      <p>Headers Showing:</p>
       <div>
-        {columns.map((column, index) => (
+        <div>
+          <input
+            type="checkbox"
+            id={`checkbox-all`}
+            checked={allChecked}
+            onChange={toggleAllCheckboxes}
+          />
+          <label htmlFor={`checkbox-all`}>Select All</label>
+        </div>
+        {headers.map((header, index) => (
           <div key={index}>
             <input
               type="checkbox"
-              id={`checkbox-${column}`}
-              checked={selectedColumns.includes(column)}
-              onChange={() => handleColumnChange(column)}
+              id={`checkbox-${header}`}
+              checked={selectedColumns.includes(index)}
+              onChange={() => handleHeaderChange(index)}
             />
-            <label htmlFor={`checkbox-${column}`}>{column}</label>
+            <label htmlFor={`checkbox-${header}`}>{header}</label>
           </div>
         ))}
       </div>
@@ -51,3 +54,5 @@ const Checkboxes = ({ setData, selectedColumns, setSelectedColumns, url, setUrlD
 };
 
 export default Checkboxes;
+
+

@@ -5,7 +5,6 @@ import { useBetween } from 'use-between';
 
 const useStateStore = () => {
   const [search, setSearch] = useState('');
-  const [data, setData] = useState([]);
   const [url, setUrl] = useState('');
   const [selectedColumns, setSelectedColumns] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
@@ -14,12 +13,16 @@ const useStateStore = () => {
   const [logo, setLogo] = useState(null);
   const [address, setAddress] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [headers, setHeaders] = useState([]);
+  const [currentItems, setCurrentItems] = useState([]);
+
+  const [accountNumber, setAccountNumber] = useState('');
+  const [startDate, setStartDate] = useState(null);
+  const [endDate, setEndDate] = useState(null);
 
   return {
     search,
     setSearch,
-    data,
-    setData,
     url,
     setUrl,
     selectedColumns,
@@ -34,7 +37,16 @@ const useStateStore = () => {
     setLogo,
     address, 
     setAddress,currentPage, 
-    setCurrentPage
+    setCurrentPage,
+    headers, 
+    setHeaders,currentItems, 
+    setCurrentItems,
+    endDate, 
+    setEndDate,
+    startDate,
+    setStartDate,
+    accountNumber, 
+    setAccountNumber
   };
 };
 

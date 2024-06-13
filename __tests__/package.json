@@ -1,0 +1,30 @@
+{
+  "scripts": {
+    "test": "jest"
+  },
+  "dependencies": {
+    "@testing-library/react": "^16.0.0",
+    "axios": "^1.7.2",
+    "playwright": "^1.44.1",
+    "react": "^18.3.1"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.24.7",
+    "@babel/preset-env": "^7.24.7",
+    "@babel/preset-react": "^7.24.7",
+    "@babel/preset-typescript": "^7.24.7",
+    "@testing-library/jest-dom": "^6.4.6",
+    "@types/jest": "^29.5.12",
+    "babel-jest": "^29.7.0",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.4",
+    "typescript": "^5.4.5"
+  },
+  "name": "pdfable",
+  "version": "1.0.0",
+  "description": "i'll be fetching data from an api, then listing them on a table which will be paginated, then at the top we will have a button that we can download either the seen page or the whole document.",
+  "main": "index.js",
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

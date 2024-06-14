@@ -1,49 +1,49 @@
-'use client'
+import React from 'react';
 
-import React, { useEffect, useState } from 'react';
+const Checkboxes = ({ headers, columnVisibility, setColumnVisibility }) => {
+  // Check if all headers are showing
+  const allHeadersShowing = Object.values(columnVisibility).every(visible => visible);
 
-const Checkboxes = ({ headers = [], selectedColumns = [], setFilteredData }) => {
   // Handle checkbox change for individual headers
-  const handleHeaderChange = (index) => {
-    setFilteredData(prevSelectedColumns =>
-      prevSelectedColumns.includes(index)
-        ? prevSelectedColumns.filter(col => col !== index)
-        : [...prevSelectedColumns, index]
-    );
+  const handleHeaderChange = (header) => {
+    setColumnVisibility(prevVisibility => ({
+      ...prevVisibility,
+      [header]: !prevVisibility[header]
+    }));
   };
 
-  // Determine if "Select All" checkbox should be checked
-  const allChecked = headers.length === selectedColumns.length;
+  // Handle checkbox change for "All Headers"
+  const handleAllHeadersChange = () => {
+    const allVisible = !allHeadersShowing;
 
-  // Handle click on "Select All" checkbox
-  const toggleAllCheckboxes = () => {
-    if (allChecked) {
-      setFilteredData([]);
-    } else {
-      setFilteredData([...Array(headers.length).keys()]);
-    }
+    const updatedVisibility = {};
+    headers.forEach(header => {
+      updatedVisibility[header] = allVisible;
+    });
+
+    setColumnVisibility(updatedVisibility);
   };
 
   return (
     <div>
       <p>Headers Showing:</p>
       <div>
-        <div>
+        <div key="all-headers">
           <input
             type="checkbox"
-            id={`checkbox-all`}
-            checked={allChecked}
-            onChange={toggleAllCheckboxes}
+            id="checkbox-all-headers"
+            checked={allHeadersShowing}
+            onChange={handleAllHeadersChange}
           />
-          <label htmlFor={`checkbox-all`}>Select All</label>
+          <label htmlFor="checkbox-all-headers">All Headers</label>
         </div>
-        {headers.map((header, index) => (
-          <div key={index}>
+        {headers.map((header) => (
+          <div key={header}>
             <input
               type="checkbox"
               id={`checkbox-${header}`}
-              checked={selectedColumns.includes(index)}
-              onChange={() => handleHeaderChange(index)}
+              checked={columnVisibility[header]}
+              onChange={() => handleHeaderChange(header)}
             />
             <label htmlFor={`checkbox-${header}`}>{header}</label>
           </div>
@@ -54,5 +54,3 @@ const Checkboxes = ({ headers = [], selectedColumns = [], setFilteredData }) => 
 };
 
 export default Checkboxes;
-
-

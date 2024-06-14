@@ -1,11 +1,9 @@
 'use client'
 
 import React, {useState} from 'react'
-import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 
 import jsPDFInvoiceTemplate from 'jspdf-invoice-template';
-import { renderValue } from './lib';
 import * as XLSX from 'xlsx';
 
 import { useSharedState } from '../components/StateStore';
@@ -24,7 +22,8 @@ const DownloadBtns = () => {
     accountNumber,
     setFilteredData  
    } = useSharedState();
-
+  const [email, setEmail] = useState('');
+  const [error, setError] = useState('');
 
   const OutputType = {
     Save: "save", //save pdf as a file
@@ -35,12 +34,10 @@ const DownloadBtns = () => {
     ArrayBuffer: "arraybuffer", //return ArrayBuffer format
   };
 
-
-  const generatePDF = (useClient) => {
+  const generatePDF = async (useClient, outputType = OutputType.Save) => {
     const tableData = useClient ? urlData : filteredData;
-  
     const props = {
-      outputType: OutputType.Save,
+      outputType,
       fileName: "Invoice_Header",
       returnJsPDFDocObject: true,
       orientationLandscape: false,
@@ -76,12 +73,16 @@ const DownloadBtns = () => {
     try {
       const pdfObject = jsPDFInvoiceTemplate(props);
       const { jsPDFDocObject } = pdfObject;
-      jsPDFDocObject.save("Invoice_Header.pdf");
+  
+      if (outputType === OutputType.Blob) {
+        return jsPDFDocObject.output('blob');
+      } else {
+        jsPDFDocObject.save("Invoice_Header.pdf");
+      }
     } catch (error) {
       console.error("Error generating PDF:", error);
     }
   };
-  
   
 // Library to download xlsx file
 const handleDownloadExcel = () => {
@@ -132,10 +133,6 @@ const handleDownloadFilter = async () => {
     return;
   }
 
-  console.log('Account Number', accountNumber);
-  console.log('Start Date', startDate);
-  console.log('End Date', endDate);
-
   try {
     const startDateFormatted = `${startDate.getFullYear()}-${('0' + (startDate.getMonth() + 1)).slice(-2)}-${('0' + startDate.getDate()).slice(-2)}`;
     const endDateFormatted = `${endDate.getFullYear()}-${('0' + (endDate.getMonth() + 1)).slice(-2)}-${('0' + endDate.getDate()).slice(-2)}`;
@@ -143,7 +140,7 @@ const handleDownloadFilter = async () => {
     const queryString = `account_number=${accountNumber}&start_date=${startDateFormatted}&end_date=${endDateFormatted}`;
     console.log("Query String:", queryString);
 
-    const response = await fetch(`http://localhost:3001/api/search?${queryString}`);
+    const response = await fetch(`http://localhost:5000/api/search?${queryString}`);
 
     if (!response.ok) {
       throw new Error(`HTTP error! Status: ${response.status}`);
@@ -162,6 +159,43 @@ const handleDownloadFilter = async () => {
   }
 };
 
+const handleEmailChange = (e) => {
+  setEmail(e.target.value);
+};
+
+const handleSendEmail = async () => {
+  if (!email || !email.includes('@')) {
+    setError('Please enter a valid email address.');
+    return;
+  }
+
+  try {
+    const pdfBlob = await generatePDF(true, OutputType.Blob);
+
+    const formData = new FormData();
+    formData.append('pdf', pdfBlob, 'Invoice.pdf');
+    formData.append('toEmail', email);
+    formData.append('subject', 'Invoice for your order');
+    formData.append('textContent', 'Please find attached your invoice.');
+    formData.append('htmlContent', '<p>Please find attached your invoice.</p>');
+
+    const response = await fetch('http://localhost:5000/api/send-email', {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to send email: ${response.status}`);
+    }
+
+    const result = await response.json();
+    alert(result.message);
+    setError('');
+  } catch (error) {
+    console.error('Error sending email:', error);
+    alert('Error sending email. Please try again.');
+  }
+};
 
 
 	return (
@@ -180,12 +214,8 @@ const handleDownloadFilter = async () => {
             onClick={() => generatePDF(true)}>
           Download PDF
         </button>
-        <button
-            className="inline-flex items-center bg-gray-100 border-0 py-1 px-3 focus:outline-none hover:bg-gray-200 rounded text-base"
-            onClick={() => {}}>
-          Send to Email
-        </button>
       </div>
+      
       {/* Container for the other two buttons */}
       <div className="flex space-x-4 p-5">
         <button
@@ -201,9 +231,24 @@ const handleDownloadFilter = async () => {
           Download Excel
         </button>
       </div>
+      <div className='flex flex-row space-y-4'>
+        <input
+          type="email"
+          className="border border-gray-200 p-2 mx-2"
+          placeholder="Enter email address"
+          value={email}
+          onChange={handleEmailChange}
+        />
+        <button
+              className="inline-flex items-center bg-gray-100 border-0 py-1 px-3 focus:outline-none hover:bg-gray-200 rounded text-base"
+              onClick={handleSendEmail}>
+            Send to Email
+          </button>
+      </div>
     </div>
 
     )
   }
 
 export default DownloadBtns
+

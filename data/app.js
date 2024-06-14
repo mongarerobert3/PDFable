@@ -1,12 +1,19 @@
 const express = require('express');
-const { connectToDatabase } = require('./connection-test-app/config');
+const { connectToDatabase } = require('./connection-test-app/config.js');
 const cors = require('cors');
+require('dotenv').config();
+
+//const generatePDF = require('../pdfable/app/components/DownloadBtns.tsx')
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const nodemailer = require('nodemailer');
+const bodyParser = require('body-parser');
+
+const PORT = process.env.PORT || 5000;
 
 app.use(express.json());
 app.use(cors());
+app.use(bodyParser.json());
 
 // Middleware to ensure database connectivity for each request
 app.use(async (req, res, next) => {
@@ -95,6 +102,55 @@ app.get('/api/search', async (req, res) => {
   }
 });
 
+app.post('/api/send-email', async (req, res) => {
+  const { toEmail, subject, textContent, htmlContent } = req.body;
+
+  try {
+    // Generate the PDF Blob
+    const pdfBlob = await generatePDF(); 
+
+    // Create Nodemailer transporter
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: 'courtewampedsoftwares@gmail.com',
+        pass: process.env.nodemailer
+      },
+    });
+    
+    transporter.verify((error, success) => {
+      if (error) {
+        console.log(error);
+      } else {
+        console.log('Server is ready to take our messages');
+      }
+    });
+
+    // Setup email data with attachments
+    let mailOptions = {
+      from: 'courtewampedsoftwares@gmail.com',
+      to: toEmail,
+      subject: subject,
+      text: textContent,
+      html: htmlContent,
+      attachments: [
+        {
+          filename: 'Invoice.pdf',
+          content: pdfBlob,
+          encoding: 'base64',
+        },
+      ],
+    };
+
+    // Send email
+    let info = await transporter.sendMail(mailOptions);
+    console.log('Email sent:', info.messageId);
+    res.status(200).json({ message: 'Email sent successfully' });
+  } catch (error) {
+    console.error('Error sending email:', error.toString());
+    res.status(500).json({ error: 'Failed to send email' });
+  }
+});
 
 // Start server
 app.listen(PORT, () => {

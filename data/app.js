@@ -3,7 +3,7 @@ const { connectToDatabase } = require('./connection-test-app/config.js');
 const cors = require('cors');
 require('dotenv').config();
 
-//const generatePDF = require('../pdfable/app/components/DownloadBtns.tsx')
+const multer = require('multer');
 
 const app = express();
 const nodemailer = require('nodemailer');
@@ -14,6 +14,9 @@ const PORT = process.env.PORT || 5000;
 app.use(express.json());
 app.use(cors());
 app.use(bodyParser.json());
+
+// Middleware to handle pdf Blob
+const upload = multer();
 
 // Middleware to ensure database connectivity for each request
 app.use(async (req, res, next) => {
@@ -102,13 +105,10 @@ app.get('/api/search', async (req, res) => {
   }
 });
 
-app.post('/api/send-email', async (req, res) => {
+app.post('/api/send-email', upload.single('pdf'), async (req, res) => {
   const { toEmail, subject, textContent, htmlContent } = req.body;
-
+  const pdf = req.file;
   try {
-    // Generate the PDF Blob
-    const pdfBlob = await generatePDF(); 
-
     // Create Nodemailer transporter
     const transporter = nodemailer.createTransport({
       service: 'gmail',
@@ -135,9 +135,8 @@ app.post('/api/send-email', async (req, res) => {
       html: htmlContent,
       attachments: [
         {
-          filename: 'Invoice.pdf',
-          content: pdfBlob,
-          encoding: 'base64',
+          filename: pdf.originalname,
+          content: pdf.buffer,
         },
       ],
     };
@@ -151,6 +150,7 @@ app.post('/api/send-email', async (req, res) => {
     res.status(500).json({ error: 'Failed to send email' });
   }
 });
+
 
 // Start server
 app.listen(PORT, () => {

@@ -34,9 +34,9 @@ const useStateStore = () => {
     setSearch,
     url,
     setUrl,
-    filteredData,
+    filteredData, //Data from the Url
     setFilteredData, 
-    urlData, 
+    urlData, //Url Data to Json
     setUrlData,
     footer, 
     setFooter,

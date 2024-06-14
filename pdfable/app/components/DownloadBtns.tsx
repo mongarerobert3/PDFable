@@ -194,10 +194,10 @@ const DownloadBtns = () => {
       const pdfBlob = await generatePDF(true, OutputType.Blob);
 
       const formData = new FormData();
-      formData.append('pdf', pdfBlob, 'Invoice.pdf');
+      formData.append('pdf', pdfBlob, 'Statement.pdf');
       formData.append('toEmail', email);
-      formData.append('subject', 'Invoice for your order');
-      formData.append('textContent', 'Please find attached your invoice.');
+      formData.append('subject', `statement for ${accountNumber}`);
+      formData.append('textContent', 'Please find attached Statement.');
       formData.append('htmlContent', '<p>Please find attached your invoice.</p>');
 
       const response = await fetch('http://localhost:5000/api/send-email', {

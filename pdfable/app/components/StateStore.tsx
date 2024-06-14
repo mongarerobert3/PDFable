@@ -1,12 +1,11 @@
 "use client"
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useBetween } from 'use-between';
 
 const useStateStore = () => {
   const [search, setSearch] = useState('');
   const [url, setUrl] = useState('');
-  const [selectedColumns, setSelectedColumns] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   const [urlData, setUrlData] = useState([]);
   const [footer, setFooter] = useState('');
@@ -15,18 +14,26 @@ const useStateStore = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [headers, setHeaders] = useState([]);
   const [currentItems, setCurrentItems] = useState([]);
-
+  const [columnVisibility, setColumnVisibility] = useState({}); 
   const [accountNumber, setAccountNumber] = useState('');
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
+
+  useEffect(() => {
+    if (headers.length > 0) {
+      const initialVisibility = {};
+      headers.forEach(header => {
+        initialVisibility[header] = true;
+      });
+      setColumnVisibility(initialVisibility);
+    }
+  }, [headers]);
 
   return {
     search,
     setSearch,
     url,
     setUrl,
-    selectedColumns,
-    setSelectedColumns,
     filteredData,
     setFilteredData, 
     urlData, 
@@ -46,7 +53,9 @@ const useStateStore = () => {
     startDate,
     setStartDate,
     accountNumber, 
-    setAccountNumber
+    setAccountNumber,
+    columnVisibility, 
+    setColumnVisibility
   };
 };
 

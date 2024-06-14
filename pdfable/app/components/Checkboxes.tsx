@@ -1,8 +1,11 @@
-import React from 'react';
+'use client';
 
-const Checkboxes = ({ headers, columnVisibility, setColumnVisibility }) => {
-  // Check if all headers are showing
-  const allHeadersShowing = Object.values(columnVisibility).every(visible => visible);
+// Checkboxes.js
+import React from 'react';
+import { useSharedState } from './StateStore';
+
+const Checkboxes = () => {
+  const { headers, columnVisibility, setColumnVisibility } = useSharedState();
 
   // Handle checkbox change for individual headers
   const handleHeaderChange = (header) => {
@@ -12,31 +15,10 @@ const Checkboxes = ({ headers, columnVisibility, setColumnVisibility }) => {
     }));
   };
 
-  // Handle checkbox change for "All Headers"
-  const handleAllHeadersChange = () => {
-    const allVisible = !allHeadersShowing;
-
-    const updatedVisibility = {};
-    headers.forEach(header => {
-      updatedVisibility[header] = allVisible;
-    });
-
-    setColumnVisibility(updatedVisibility);
-  };
-
   return (
     <div>
       <p>Headers Showing:</p>
       <div>
-        <div key="all-headers">
-          <input
-            type="checkbox"
-            id="checkbox-all-headers"
-            checked={allHeadersShowing}
-            onChange={handleAllHeadersChange}
-          />
-          <label htmlFor="checkbox-all-headers">All Headers</label>
-        </div>
         {headers.map((header) => (
           <div key={header}>
             <input

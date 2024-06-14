@@ -20,7 +20,9 @@ const Index = () => {
     setFilteredData,
     currentPage,
     setCurrentPage,
+    columnVisibility,
   } = useSharedState();
+
   const [error, setError] = useState(null);
   const [itemsPerPage] = useState(20);
 
@@ -30,7 +32,7 @@ const Index = () => {
         const response = await axios.get(url);
         const { headers, data } = response.data;
         setHeaders(headers);
-        setUrlData(data); 
+        setUrlData(data);
         setFilteredData(data);
       } catch (error) {
         setError(error);
@@ -40,13 +42,12 @@ const Index = () => {
     if (url) {
       fetchDataFromApi();
     }
-  }, [url, setUrlData, setFilteredData, setHeaders]);
+  }, [url, setHeaders, setUrlData, setFilteredData, setError]);
 
   // Calculate total number of pages
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
 
   // Get current items based on pagination
-  // Update currentItems when filteredData changes
   useEffect(() => {
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -72,7 +73,9 @@ const Index = () => {
                 <thead>
                   <tr>
                     {headers.map((header, index) => (
-                      <th key={index}>{header}</th>
+                      columnVisibility[header] && (
+                        <th key={index}>{header}</th>
+                      )
                     ))}
                   </tr>
                 </thead>
@@ -80,7 +83,9 @@ const Index = () => {
                   {currentItems.map((item, index) => (
                     <tr key={index}>
                       {item.map((cell, colIndex) => (
-                        <td key={colIndex}>{renderValue(cell)}</td>
+                        columnVisibility[headers[colIndex]] && (
+                          <td key={colIndex}>{renderValue(cell)}</td>
+                        )
                       ))}
                     </tr>
                   ))}
@@ -128,4 +133,6 @@ const Index = () => {
 };
 
 export default Index;
+
+
 

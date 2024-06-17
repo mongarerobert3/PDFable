@@ -19,6 +19,8 @@ const DownloadBtns = () => {
     startDate,
     accountNumber,
     setFilteredData,
+    columnVisibility,
+    currentItems
   } = useSharedState();
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
@@ -51,6 +53,13 @@ const DownloadBtns = () => {
   const generatePDF = async (useClient, outputType = OutputType.Save) => {
     const tableData = useClient ? urlData : filteredData;
 
+    if (!(headers && headers.length > 0 && tableData && tableData.length > 0)) {
+      alert('No table to print');
+      return;
+    }
+
+    const { visibleHeaders, visibleData } = getVisibleTableData();
+
     const props = {
       outputType,
       fileName: 'Invoice_Header',
@@ -71,8 +80,8 @@ const DownloadBtns = () => {
         invGenDate: `Date: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`,
         headerBorder: true,
         tableBodyBorder: false,
-        header: headers.map((header) => ({ title: header })),
-        table: tableData,
+        header: visibleHeaders.map((header) => ({ title: header })),
+        table: visibleData,
         additionalRows: [],
         invDescLabel: '',
         invDesc: '',
@@ -96,18 +105,38 @@ const DownloadBtns = () => {
 
         return pdfBlob;      
       } else {
-        jsPDFDocObject.save('Invoice_Header.pdf');
+        jsPDFDocObject.save('Account_Statement.pdf');
       }
+      
     } catch (error) {
       console.error('Error generating PDF:', error);
     }
   };
 
+  const getVisibleTableData = () => {
+    const visibleHeaders = headers.filter(header => columnVisibility[header]);
+    const visibleData = currentItems.map(item => item.filter((cell, colIndex) => columnVisibility[headers[colIndex]]));
+
+    return { visibleHeaders, visibleData };
+  };
+
+  const handleGeneratePdf = (useClient) => {
+    const tableData = useClient ? urlData : filteredData;
+
+    if (!(headers && headers.length > 0 && tableData && tableData.length > 0)) {
+      alert('No table to print');
+      return;
+    }
+    
+    generatePDF(useClient, OutputType.Save);
+  };
+
+
   // Library to download xlsx file
-  const handleDownloadExcel = () => {
+  const handleDownloadExcel = (useClient) => {
     const table = document.getElementById('income_table');
     const headerElement = document.getElementById('header');
-
+  
     if (table && headerElement) {
       const headerText = headerElement.textContent.trim();
       const headers = Array.from(table.querySelectorAll('thead th')).map((headerCell) =>
@@ -116,33 +145,37 @@ const DownloadBtns = () => {
       const tableData = Array.from(table.querySelectorAll('tbody tr')).map((row) =>
         Array.from(row.cells).map((cell) => cell.textContent.trim())
       );
-
+  
       // Create a new workbook and add a worksheet
       const wb = XLSX.utils.book_new();
       const ws = XLSX.utils.aoa_to_sheet([headers, ...tableData]);
-
+  
       // Add worksheet to workbook
       XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
-
+  
       // Convert workbook to binary Excel file (xlsx format)
       const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
-
-      // Create a Blob from the buffer
-      const blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
-
-      // Create anchor tag and trigger download
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
-      link.setAttribute('download', 'tabledata.xlsx');
-      document.body.appendChild(link);
-      link.click();
-
-      // Cleanup
-      document.body.removeChild(link);
+      const excelBlob = new Blob([excelBuffer], { type: 'application/octet-stream' });
+  
+      if (useClient) {
+        return excelBlob;
+      } else {
+        // Trigger download if useClient is false
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(excelBlob);
+        link.setAttribute('download', 'tabledata.xlsx');
+        document.body.appendChild(link);
+        link.click();
+  
+        // Cleanup
+        document.body.removeChild(link);
+      }
     } else {
+      alert('No table found')
       console.error('Table or header element not found');
     }
   };
+  
 
   const handleDownloadFilter = async () => {
     if (!accountNumber || !startDate || !endDate) {
@@ -189,34 +222,38 @@ const DownloadBtns = () => {
       setError('Please enter a valid email address.');
       return;
     }
-
+  
     try {
       const pdfBlob = await generatePDF(true, OutputType.Blob);
-
+      const excelBlob = handleDownloadExcel(true);
+  
       const formData = new FormData();
-      formData.append('pdf', pdfBlob, 'Statement.pdf');
-      formData.append('toEmail', email);
-      formData.append('subject', `statement for ${accountNumber}`);
-      formData.append('textContent', 'Please find attached Statement.');
-      formData.append('htmlContent', '<p>Please find attached your invoice.</p>');
+      formData.append('pdf', pdfBlob, 'Account_Statement.pdf');
+      formData.append('excel', excelBlob, 'Account_Statement.xlsx');
 
+      formData.append('toEmail', email);
+      formData.append('subject', `Statement for ${accountNumber}`);
+      formData.append('textContent', 'Please find attached Statement and Table Data.');
+      formData.append('htmlContent', '<p>Please find attached your invoice and table data.</p>');
+  
       const response = await fetch('http://localhost:5000/api/send-email', {
         method: 'POST',
         body: formData,
       });
-
+  
       if (!response.ok) {
         throw new Error(`Failed to send email: ${response.status}`);
       }
-
+  
       const result = await response.json();
-      alert(result.message);
+      alert(result.message); // Display success message
       setError('');
     } catch (error) {
       console.error('Error sending email:', error);
       alert('Error sending email. Please try again.');
     }
   };
+  
 
   return (
     <div className="flex flex-col items-center">
@@ -229,7 +266,7 @@ const DownloadBtns = () => {
         </button>
         <button
           className="inline-flex items-center bg-gray-100 border-0 py-1 px-3 focus:outline-none hover:bg-gray-200 rounded text-base"
-          onClick={() => generatePDF(false)}
+          onClick={() => handleGeneratePdf(false)}
         >
           Download PDF
         </button>
@@ -238,13 +275,13 @@ const DownloadBtns = () => {
       <div className="flex space-x-4 p-5">
         <button
           className="inline-flex items-center bg-gray-100 border-0 py-1 px-3 focus:outline-none hover:bg-gray-200 rounded text-base"
-          onClick={() => generatePDF(true)}
+          onClick={() => handleGeneratePdf(true)}
         >
           Download Full Statement
         </button>
         <button
           className="inline-flex items-center bg-gray-100 border-0 py-1 px-3 focus:outline-none hover:bg-gray-200 rounded text-base"
-          onClick={handleDownloadExcel}
+          onClick={() => handleDownloadExcel(false)}
         >
           Download Excel
         </button>
@@ -270,4 +307,3 @@ const DownloadBtns = () => {
 };
 
 export default DownloadBtns;
-

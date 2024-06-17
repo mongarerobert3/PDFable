@@ -107,7 +107,9 @@ app.get('/api/search', async (req, res) => {
 
 app.post('/api/send-email', upload.single('pdf'), async (req, res) => {
   const { toEmail, subject, textContent, htmlContent } = req.body;
-  const pdf = req.file;
+  const pdf = req.files.pdf[0]; 
+  const excel = req.files.excel[0];
+
   try {
     // Create Nodemailer transporter
     const transporter = nodemailer.createTransport({
@@ -138,6 +140,10 @@ app.post('/api/send-email', upload.single('pdf'), async (req, res) => {
           filename: pdf.originalname,
           content: pdf.buffer,
         },
+        {
+          filename: excel.originalname,
+          content: excel.buffer,
+        },
       ],
     };
 
@@ -155,4 +161,4 @@ app.post('/api/send-email', upload.single('pdf'), async (req, res) => {
 // Start server
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
-});
+});  

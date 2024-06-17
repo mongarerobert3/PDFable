@@ -1,20 +1,22 @@
 {
-  "headers": ["ID", "Name", "Age", "Email", "City"],
-  "data": [
-    {"ID": 1, "Name": "John Doe", "Age": 28, "Email": "john.doe@example.com", "City": "New York"},
-    {"ID": 2, "Name": "Jane Smith", "Age": 34, "Email": "jane.smith@example.com", "City": "Los Angeles"},
-    {"ID": 3, "Name": "Sam Brown", "Age": 22, "Email": "sam.brown@example.com", "City": "Chicago"},
-    {"ID": 4, "Name": "Nancy Jones", "Age": 29, "Email": "nancy.jones@example.com", "City": "Houston"},
-    {"ID": 5, "Name": "Michael Lee", "Age": 40, "Email": "michael.lee@example.com", "City": "Phoenix"},
-    {"ID": 6, "Name": "Linda White", "Age": 31, "Email": "linda.white@example.com", "City": "Philadelphia"},
-    {"ID": 7, "Name": "Chris Harris", "Age": 27, "Email": "chris.harris@example.com", "City": "San Antonio"},
-    {"ID": 8, "Name": "Patricia Davis", "Age": 35, "Email": "patricia.davis@example.com", "City": "San Diego"},
-    {"ID": 9, "Name": "Robert Wilson", "Age": 45, "Email": "robert.wilson@example.com", "City": "Dallas"},
-    {"ID": 10, "Name": "Sarah Martinez", "Age": 30, "Email": "sarah.martinez@example.com", "City": "San Jose"},
-    {"ID": 11, "Name": "Mark Taylor", "Age": 33, "Email": "mark.taylor@example.com", "City": "Austin"},
-    {"ID": 12, "Name": "Emily Clark", "Age": 26, "Email": "emily.clark@example.com", "City": "Jacksonville"},
-    {"ID": 13, "Name": "Steven Moore", "Age": 38, "Email": "steven.moore@example.com", "City": "Fort Worth"},
-    {"ID": 14, "Name": "Angela Anderson", "Age": 24, "Email": "angela.anderson@example.com", "City": "Columbus"},
-    {"ID": 15, "Name": "Joshua Lewis", "Age": 29, "Email": "joshua.lewis@example.com", "City": "Charlotte"}
-  ]
+  "table": {
+    "headers": ["ID", "Name", "Age", "Email", "City"],
+    "data": [
+      {"ID": 1, "Name": "John Doe", "Age": 28, "Email": "john.doe@example.com", "City": "New York"},
+      {"ID": 2, "Name": "Jane Smith", "Age": 34, "Email": "jane.smith@example.com", "City": "Los Angeles"},
+      {"ID": 3, "Name": "Sam Brown", "Age": 22, "Email": "sam.brown@example.com", "City": "Chicago"},
+      {"ID": 4, "Name": "Nancy Jones", "Age": 29, "Email": "nancy.jones@example.com", "City": "Houston"},
+      {"ID": 5, "Name": "Michael Lee", "Age": 40, "Email": "michael.lee@example.com", "City": "Phoenix"},
+      {"ID": 6, "Name": "Linda White", "Age": 31, "Email": "linda.white@example.com", "City": "Philadelphia"},
+      {"ID": 7, "Name": "Chris Harris", "Age": 27, "Email": "chris.harris@example.com", "City": "San Antonio"},
+      {"ID": 8, "Name": "Patricia Davis", "Age": 35, "Email": "patricia.davis@example.com", "City": "San Diego"},
+      {"ID": 9, "Name": "Robert Wilson", "Age": 45, "Email": "robert.wilson@example.com", "City": "Dallas"},
+      {"ID": 10, "Name": "Sarah Martinez", "Age": 30, "Email": "sarah.martinez@example.com", "City": "San Jose"},
+      {"ID": 11, "Name": "Mark Taylor", "Age": 33, "Email": "mark.taylor@example.com", "City": "Austin"},
+      {"ID": 12, "Name": "Emily Clark", "Age": 26, "Email": "emily.clark@example.com", "City": "Jacksonville"},
+      {"ID": 13, "Name": "Steven Moore", "Age": 38, "Email": "steven.moore@example.com", "City": "Fort Worth"},
+      {"ID": 14, "Name": "Angela Anderson", "Age": 24, "Email": "angela.anderson@example.com", "City": "Columbus"},
+      {"ID": 15, "Name": "Joshua Lewis", "Age": 29, "Email": "joshua.lewis@example.com", "City": "Charlotte"}
+    ]
+  }
 }

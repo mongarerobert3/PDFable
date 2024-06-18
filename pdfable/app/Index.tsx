@@ -54,6 +54,8 @@ const Index = () => {
     setCurrentItems(filteredData.slice(indexOfFirstItem, indexOfLastItem));
   }, [filteredData, currentPage, itemsPerPage, setCurrentItems]);
 
+  console.log(currentItems);
+
   // Handle page change
   const handlePageChange = (action) => {
     if (action === 'prev') {
@@ -70,7 +72,7 @@ const Index = () => {
           <section className="mx-auto flex flex-wrap justify-center">
             <div>
               <table id="income_table">
-                <thead>
+                <thead id='header'>
                   <tr>
                     {headers.map((header, index) => (
                       columnVisibility[header] && (

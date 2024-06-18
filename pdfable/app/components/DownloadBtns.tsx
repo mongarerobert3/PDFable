@@ -115,7 +115,7 @@ const DownloadBtns = () => {
 
   const getVisibleTableData = () => {
     const visibleHeaders = headers.filter(header => columnVisibility[header]);
-    const visibleData = currentItems.map(item => item.filter((cell, colIndex) => columnVisibility[headers[colIndex]]));
+    const visibleData = filteredData.map(item => item.filter((cell, colIndex) => columnVisibility[headers[colIndex]]));
 
     return { visibleHeaders, visibleData };
   };
@@ -136,46 +136,48 @@ const DownloadBtns = () => {
   const handleDownloadExcel = (useClient) => {
     const table = document.getElementById('income_table');
     const headerElement = document.getElementById('header');
-  
+
     if (table && headerElement) {
-      const headerText = headerElement.textContent.trim();
-      const headers = Array.from(table.querySelectorAll('thead th')).map((headerCell) =>
-        headerCell.textContent.trim()
-      );
-      const tableData = Array.from(table.querySelectorAll('tbody tr')).map((row) =>
-        Array.from(row.cells).map((cell) => cell.textContent.trim())
-      );
-  
-      // Create a new workbook and add a worksheet
-      const wb = XLSX.utils.book_new();
-      const ws = XLSX.utils.aoa_to_sheet([headers, ...tableData]);
-  
-      // Add worksheet to workbook
-      XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
-  
-      // Convert workbook to binary Excel file (xlsx format)
-      const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
-      const excelBlob = new Blob([excelBuffer], { type: 'application/octet-stream' });
-  
-      if (useClient) {
-        return excelBlob;
-      } else {
-        // Trigger download if useClient is false
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(excelBlob);
-        link.setAttribute('download', 'tabledata.xlsx');
-        document.body.appendChild(link);
-        link.click();
-  
-        // Cleanup
-        document.body.removeChild(link);
-      }
+        console.log('Table and header found');
+
+        // Access the full headers and data
+        const fullHeaders = headers.map(header => header.trim());
+        console.log('Headers:', fullHeaders);
+
+        const fullTableData = filteredData.map(row =>
+            row.map(cell => (typeof cell === 'string' ? cell.trim() : String(cell).trim()))
+        );
+        console.log('Full Table data:', fullTableData);
+
+        // Create a new workbook and add a worksheet
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.aoa_to_sheet([headers, ...fullTableData]);
+
+        // Add worksheet to workbook
+        XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+
+        // Convert workbook to binary Excel file (xlsx format)
+        const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+        const excelBlob = new Blob([excelBuffer], { type: 'application/octet-stream' });
+
+        if (useClient) {
+            return excelBlob;
+        } else {
+            // Trigger download if useClient is false
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(excelBlob);
+            link.setAttribute('download', 'tabledata.xlsx');
+            document.body.appendChild(link);
+            link.click();
+
+            // Cleanup
+            document.body.removeChild(link);
+        }
     } else {
-      alert('No table found')
-      console.error('Table or header element not found');
+        alert('No table found');
+        console.error('Table or header element not found');
     }
-  };
-  
+};
 
   const handleDownloadFilter = async () => {
     if (!accountNumber || !startDate || !endDate) {
@@ -219,40 +221,46 @@ const DownloadBtns = () => {
 
   const handleSendEmail = async () => {
     if (!email || !email.includes('@')) {
-      setError('Please enter a valid email address.');
-      return;
+        setError('Please enter a valid email address.');
+        return;
     }
-  
-    try {
-      const pdfBlob = await generatePDF(true, OutputType.Blob);
-      const excelBlob = handleDownloadExcel(true);
-  
-      const formData = new FormData();
-      formData.append('pdf', pdfBlob, 'Account_Statement.pdf');
-      formData.append('excel', excelBlob, 'Account_Statement.xlsx');
 
-      formData.append('toEmail', email);
-      formData.append('subject', `Statement for ${accountNumber}`);
-      formData.append('textContent', 'Please find attached Statement and Table Data.');
-      formData.append('htmlContent', '<p>Please find attached your invoice and table data.</p>');
-  
-      const response = await fetch('http://localhost:5000/api/send-email', {
-        method: 'POST',
-        body: formData,
-      });
-  
-      if (!response.ok) {
-        throw new Error(`Failed to send email: ${response.status}`);
-      }
-  
-      const result = await response.json();
-      alert(result.message); // Display success message
-      setError('');
+    try {
+        // Generate PDF Blob
+        const pdfBlob = await generatePDF(true, OutputType.Blob);
+
+        // Generate Excel Blob
+        const excelBlob = handleDownloadExcel(true);
+
+        // Create FormData object
+        const formData = new FormData();
+        formData.append('pdf', pdfBlob, 'Account_Statement.pdf');
+        formData.append('excel', excelBlob, 'Account_Statement.xlsx');
+        formData.append('toEmail', email);
+        formData.append('subject', `Statement for ${accountNumber}`);
+        formData.append('textContent', 'Please find attached Statement and Table Data.');
+        formData.append('htmlContent', '<p>Please find attached your invoice and table data.</p>');
+
+        // Send email request
+        const response = await fetch('http://localhost:5000/api/send-email', {
+            method: 'POST',
+            body: formData,
+        });
+
+        // Handle response
+        if (!response.ok) {
+            throw new Error(`Failed to send email: ${response.status}`);
+        }
+
+        const result = await response.json();
+        alert(result.message); // Display success message
+        setError('');
     } catch (error) {
-      console.error('Error sending email:', error);
-      alert('Error sending email. Please try again.');
+        console.error('Error sending email:', error);
+        alert('Error sending email. Please try again.');
     }
-  };
+};
+
   
 
   return (

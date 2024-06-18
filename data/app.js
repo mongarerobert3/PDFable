@@ -105,10 +105,15 @@ app.get('/api/search', async (req, res) => {
   }
 });
 
-app.post('/api/send-email', upload.single('pdf'), async (req, res) => {
+app.post('/api/send-email', upload.any(), async (req, res) => {
   const { toEmail, subject, textContent, htmlContent } = req.body;
-  const pdf = req.files.pdf[0]; 
-  const excel = req.files.excel[0];
+
+  const pdfFile = req.files.find(file => file.fieldname === 'pdf');
+  const excelFile = req.files.find(file => file.fieldname === 'excel');
+
+  if (!pdfFile || !excelFile) {
+    return res.status(400).json({ error: 'Missing PDF or Excel attachment' });
+  }
 
   try {
     // Create Nodemailer transporter
@@ -137,12 +142,12 @@ app.post('/api/send-email', upload.single('pdf'), async (req, res) => {
       html: htmlContent,
       attachments: [
         {
-          filename: pdf.originalname,
-          content: pdf.buffer,
+          filename: pdfFile.originalname,
+          content: pdfFile.buffer,
         },
         {
-          filename: excel.originalname,
-          content: excel.buffer,
+          filename: excelFile.originalname,
+          content: excelFile.buffer,
         },
       ],
     };
